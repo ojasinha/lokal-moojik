@@ -1,50 +1,34 @@
-# Welcome to your Expo app 👋
+# lokalmoojik
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native music streaming app built with Expo. Streams from JioSaavn, supports offline downloads, and runs on Android and iOS (not tested on iOS).
 
-## Get started
+## Requirements
+- Expo Go app
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Setup
 
 ```bash
-npm run reset-project
+git clone https://github.com/ojasinha/lokal-moojik.git
+cd lokal-moojik
+npm i
+npx expo start
 ```
+Scan QR code with Expo Go (Android) or with camera (iOS)
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Architecture
 
-## Learn more
+The app is split into four clear layers.
 
-To learn more about developing your project with Expo, look at the following resources:
+**Data** — `src/services/api.ts` talks to a JioSaavn proxy (`saavn.sumit.co`). All responses are normalized into a shared `Track` type so the rest of the app never touches raw API shapes.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**State** — Zustand (`src/store/playerStore.ts`) owns everything: current track, queue, shuffle/repeat mode, favourites, recently played, and downloaded tracks. Persistence happens via AsyncStorage on every write, loaded back at startup.
 
-## Join the community
+**Audio** — `src/services/AudioProvider.tsx` mounts once at the app root. It creates the `expo-audio` player instance and injects three callbacks (`onPlay`, `onTogglePlay`, `onSeek`) into the Zustand store. Any component can trigger playback by calling store actions — no prop drilling, no context threading.
 
-Join our community of developers creating universal apps.
+**Navigation** — React Navigation with a native stack wrapping a bottom tab navigator. The full-screen player, queue, search, album detail, and artist detail screens sit on the stack above the tabs.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Tradeoffs
+
+**expo-audio over react-native-track-player**: `expo-audio` is the official Expo module and requires less native configuration. The cost is that background playback on iOS requires a proper development build and the `playsInSilentMode` audio session flag. It works, but iOS has its quirks.
+
+**Manual React Navigation instead of Expo Router**: In my personal experience, Expo Router's file-based routing is much more clean.
