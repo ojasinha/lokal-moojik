@@ -29,6 +29,6 @@ The app is split into four clear layers.
 
 ## Tradeoffs
 
-**expo-audio over react-native-track-player**: `expo-audio` is the official Expo module and requires less native configuration. The cost is that background playback on iOS requires a proper development build and the `playsInSilentMode` audio session flag. It works, but iOS has its quirks.
+**expo-audio over react-native-track-player**: `expo-audio` is the official Expo module and requires less native configuration. The cost is that background playback on iOS requires a proper development build. It works, but iOS has its quirks.
 
 **Manual React Navigation instead of Expo Router**: In my personal experience, Expo Router's file-based routing is much more clean.
