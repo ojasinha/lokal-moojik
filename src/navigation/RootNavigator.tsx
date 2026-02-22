@@ -5,6 +5,7 @@ import React from 'react';
 import AlbumDetailScreen from '../screens/AlbumDetailScreen';
 import ArtistDetailScreen from '../screens/ArtistDetailScreen';
 import PlayerScreen from '../screens/PlayerScreen';
+import PlaylistDetailScreen from '../screens/PlaylistDetailScreen';
 import QueueScreen from '../screens/QueueScreen';
 import SearchScreen from '../screens/SearchScreen';
 import { TabNavigator } from './TabNavigator';
@@ -22,15 +23,21 @@ export function RootNavigator() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen
+        name="MainTabs"
+        component={TabNavigator}
+        options={{ contentStyle: { backgroundColor: colors.background } }}
+      />
 
       <Stack.Screen
         name="Player"
         component={PlayerScreen}
         options={{
-          presentation: 'fullScreenModal',
           animation: 'slide_from_bottom',
+          animationDuration: 320,
           gestureEnabled: true,
+          gestureDirection: 'vertical',
+          contentStyle: { backgroundColor: colors.background },
         }}
       />
 
@@ -44,6 +51,7 @@ export function RootNavigator() {
           headerStyle: { backgroundColor: colors.surface },
           headerTintColor: colors.textPrimary,
           headerTitleStyle: { fontWeight: '700' },
+          contentStyle: { backgroundColor: colors.background },
         }}
       />
 
@@ -57,13 +65,17 @@ export function RootNavigator() {
           headerStyle: { backgroundColor: colors.surface },
           headerTintColor: colors.textPrimary,
           headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          contentStyle: { backgroundColor: colors.background },
         })}
       />
 
       <Stack.Screen
         name="Search"
         component={SearchScreen}
-        options={{ animation: 'slide_from_right' }}
+        options={{
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: colors.background },
+        }}
       />
 
       <Stack.Screen
@@ -76,6 +88,20 @@ export function RootNavigator() {
           headerStyle: { backgroundColor: colors.surface },
           headerTintColor: colors.textPrimary,
           headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          contentStyle: { backgroundColor: colors.background },
+        })}
+      />
+
+      <Stack.Screen
+        name="PlaylistDetail"
+        component={PlaylistDetailScreen}
+        options={({ route }) => ({
+          headerShown: true,
+          title: (route.params as any).playlistName ?? 'Playlist',
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.textPrimary,
+          headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          contentStyle: { backgroundColor: colors.background },
         })}
       />
     </Stack.Navigator>

@@ -44,17 +44,29 @@ async function apiFetch<T>(path: string): Promise<T> {
 
 // ─── Normalisation ────────────────────────────────────────────────────────────
 
-export function normaliseSearchSong(s: RawSearchSong): Track {
+export function normaliseSearchSong(s: any): Track {
+  // API now returns artists as { primary: [{id, name}] } — fall back to old flat field if present
+  const primaryArtists: string =
+    s.primaryArtists ||
+    (s.artists?.primary as any[])?.map((a: any) => a.name).join(", ") ||
+    "";
+  const primaryArtistsId: string =
+    s.primaryArtistsId ||
+    (s.artists?.primary as any[])?.map((a: any) => a.id).join(",") ||
+    "";
   return {
     id: s.id,
     name: s.name,
-    durationSecs: parseInt(s.duration, 10) || 0,
-    primaryArtists: s.primaryArtists ?? "",
-    primaryArtistsId: s.primaryArtistsId ?? "",
+    durationSecs:
+      typeof s.duration === "string"
+        ? parseInt(s.duration, 10) || 0
+        : s.duration || 0,
+    primaryArtists,
+    primaryArtistsId,
     album: { id: s.album?.id ?? "", name: s.album?.name ?? "" },
     artwork: bestImageUrl(s.image),
-    audioUrl: audioUrl(s.downloadUrl, "160kbps"),
-    audioUrl320: audioUrl(s.downloadUrl, "320kbps"),
+    audioUrl: audioUrl(s.downloadUrl ?? [], "160kbps"),
+    audioUrl320: audioUrl(s.downloadUrl ?? [], "320kbps"),
   };
 }
 
@@ -88,18 +100,41 @@ export async function searchSongs(
   };
 }
 
-export async function searchArtists(query: string): Promise<SearchArtist[]> {
+export async function searchArtists(
+  query: string,
+  page = 1,
+  limit = 20,
+): Promise<{ artists: SearchArtist[]; total: number }> {
   const data = await apiFetch<any>(
-    `/api/search/artists?query=${encodeURIComponent(query)}`,
+    `/api/search/artists?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`,
   );
-  return data?.data?.results ?? [];
+  return {
+    artists: data?.data?.results ?? [],
+    total: data?.data?.total ?? 0,
+  };
 }
 
-export async function searchAlbums(query: string): Promise<SearchAlbum[]> {
+export async function searchAlbums(
+  query: string,
+  page = 1,
+  limit = 20,
+): Promise<{ albums: SearchAlbum[]; total: number }> {
   const data = await apiFetch<any>(
-    `/api/search/albums?query=${encodeURIComponent(query)}`,
+    `/api/search/albums?query=${encodeURIComponent(query)}&page=${page}&limit=${limit}`,
   );
-  return data?.data?.results ?? [];
+  const results: any[] = data?.data?.results ?? [];
+  return {
+    albums: results.map((a) => ({
+      ...a,
+      // API now returns artists as { primary: [{id, name}] } — flatten to string
+      primaryArtists:
+        a.primaryArtists ??
+        a.artist ??
+        (a.artists?.primary as any[])?.map((p: any) => p.name).join(", ") ??
+        "",
+    })),
+    total: data?.data?.total ?? 0,
+  };
 }
 
 // ─── Song detail ──────────────────────────────────────────────────────────────

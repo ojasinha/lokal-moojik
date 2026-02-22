@@ -45,12 +45,16 @@ export function SuggestedTab({ searchQuery }: Props) {
       try {
         const [songsRes, artistsRes, mostRes] = await Promise.all([
           searchSongs('arijit singh', 1, 10),
-          searchArtists('bollywood'),
+          searchArtists('bollywood').then((r) => r.artists),
           searchSongs('hindi hits', 1, 10),
         ]);
         if (!cancelled) {
           setFeaturedSongs(songsRes.tracks);
-          setArtists(artistsRes.slice(0, 8));
+          setArtists(
+            artistsRes
+              .filter((a) => a.id && a.name && a.name.trim().length > 0)
+              .slice(0, 8)
+          );
           setMostPlayed(mostRes.tracks);
         }
       } catch {
@@ -118,7 +122,16 @@ export function SuggestedTab({ searchQuery }: Props) {
           const img = item.image?.find((i) => i.quality === '150x150');
           const src = img?.link ?? img?.url ?? '';
           return (
-            <TouchableOpacity style={styles.artistCard}>
+            <TouchableOpacity
+              style={styles.artistCard}
+              onPress={() =>
+                (nav as any).navigate('ArtistDetail', {
+                  artistId: item.id,
+                  artistName: decodeHtmlEntities(item.name),
+                })
+              }
+              activeOpacity={0.7}
+            >
               <Image
                 source={src ? { uri: src } : PLACEHOLDER}
                 style={styles.artistAvatar}

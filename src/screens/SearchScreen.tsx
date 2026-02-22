@@ -105,8 +105,8 @@ export default function SearchScreen() {
       try {
         const [songs, artists, albums] = await Promise.all([
           searchSongs(trimmed, 1, 20).then((r) => r.tracks),
-          searchArtists(trimmed),
-          searchAlbums(trimmed),
+          searchArtists(trimmed).then((r) => r.artists),
+          searchAlbums(trimmed).then((r) => r.albums),
         ]);
         setSongResults(songs);
         setArtistResults(artists);

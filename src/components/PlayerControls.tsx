@@ -1,6 +1,7 @@
 import { ACCENT } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
-import { Pause, Play, Repeat, Repeat1, RotateCcw, RotateCw, Shuffle, SkipBack, SkipForward } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ListMusic, Pause, Play, Repeat, Repeat1, RotateCcw, RotateCw, Shuffle, SkipBack, SkipForward } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { RepeatMode } from '../store/playerStore';
@@ -20,6 +21,7 @@ function RepeatIcon({ mode, colors }: { mode: RepeatMode; colors: any }) {
 
 export function PlayerControls() {
   const colors = useAppColors();
+  const nav = useNavigation();
   const shuffle = usePlayerStore((s) => s.shuffle);
   const repeat = usePlayerStore((s) => s.repeat);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
@@ -62,10 +64,14 @@ export function PlayerControls() {
         </TouchableOpacity>
       </View>
 
-      {/* Secondary row: shuffle | repeat */}
+      {/* Secondary row: shuffle | queue | repeat */}
       <View style={styles.secondaryRow}>
         <TouchableOpacity onPress={toggleShuffle} hitSlop={HIT}>
           <Shuffle size={22} color={shuffle ? ACCENT : colors.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => nav.navigate('Queue' as never)} hitSlop={HIT}>
+          <ListMusic size={22} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={cycleRepeat} hitSlop={HIT}>

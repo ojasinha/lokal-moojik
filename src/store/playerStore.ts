@@ -1,12 +1,14 @@
 import { create } from "zustand";
-import type { Track } from "../types/music";
+import type { Playlist, Track } from "../types/music";
 import {
     loadDownloaded,
     loadFavourites,
+    loadPlaylists,
     loadQueue,
     loadRecent,
     saveDownloaded,
     saveFavourites,
+    savePlaylists,
     saveQueue,
     saveRecent,
 } from "../utils/storage";
@@ -28,6 +30,7 @@ interface PlayerState {
   favourites: Track[];
   recentlyPlayed: Track[];
   downloadedTracks: Track[];
+  playlists: Playlist[];
 
   // ── Audio callbacks (set by AudioProvider) ──────────────────────────────────
   _onPlay: ((track: Track) => void) | null;
@@ -53,6 +56,13 @@ interface PlayerState {
   isFavourite: (id: string) => boolean;
   addDownloadedTrack: (track: Track) => void;
   isDownloaded: (id: string) => boolean;
+
+  // ── Playlists ────────────────────────────────────────────────────────────────
+  createPlaylist: (name: string) => string;
+  deletePlaylist: (id: string) => void;
+  renamePlaylist: (id: string, name: string) => void;
+  addTrackToPlaylist: (playlistId: string, track: Track) => void;
+  removeTrackFromPlaylist: (playlistId: string, trackId: string) => void;
 
   // ── Internal setters (called by AudioProvider) ───────────────────────────────
   _setPosition: (secs: number) => void;
@@ -80,6 +90,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   favourites: [],
   recentlyPlayed: [],
   downloadedTracks: [],
+  playlists: [],
   _onPlay: null,
   _onTogglePlay: null,
   _onSeek: null,
@@ -231,6 +242,56 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   isDownloaded: (id) => get().downloadedTracks.some((d) => d.id === id),
 
+  // ── Playlist actions ─────────────────────────────────────────────────────────
+
+  createPlaylist: (name) => {
+    const id = `pl_${Date.now()}`;
+    const newPlaylist: Playlist = {
+      id,
+      name,
+      tracks: [],
+      createdAt: Date.now(),
+    };
+    const updated = [...get().playlists, newPlaylist];
+    set({ playlists: updated });
+    savePlaylists(updated);
+    return id;
+  },
+
+  deletePlaylist: (id) => {
+    const updated = get().playlists.filter((p) => p.id !== id);
+    set({ playlists: updated });
+    savePlaylists(updated);
+  },
+
+  renamePlaylist: (id, name) => {
+    const updated = get().playlists.map((p) =>
+      p.id === id ? { ...p, name } : p,
+    );
+    set({ playlists: updated });
+    savePlaylists(updated);
+  },
+
+  addTrackToPlaylist: (playlistId, track) => {
+    const updated = get().playlists.map((p) => {
+      if (p.id !== playlistId) return p;
+      if (p.tracks.some((t) => t.id === track.id)) return p;
+      return { ...p, tracks: [...p.tracks, track] };
+    });
+    set({ playlists: updated });
+    savePlaylists(updated);
+  },
+
+  removeTrackFromPlaylist: (playlistId, trackId) => {
+    const updated = get().playlists.map((p) =>
+      p.id !== playlistId
+        ? p
+        : { ...p, tracks: p.tracks.filter((t) => t.id !== trackId) },
+    );
+    set({ playlists: updated });
+    savePlaylists(updated);
+  },
+
   // ── Internal ─────────────────────────────────────────────────────────────────
 
   _setPosition: (secs) => set({ position: secs }),
@@ -241,13 +302,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ _onPlay: onPlay, _onTogglePlay: onToggle, _onSeek: onSeek }),
 
   hydrate: async () => {
-    const [queue, favourites, recentlyPlayed, downloadedTracks] =
+    const [queue, favourites, recentlyPlayed, downloadedTracks, playlists] =
       await Promise.all([
         loadQueue(),
         loadFavourites(),
         loadRecent(),
         loadDownloaded(),
+        loadPlaylists(),
       ]);
-    set({ queue, favourites, recentlyPlayed, downloadedTracks });
+    set({ queue, favourites, recentlyPlayed, downloadedTracks, playlists });
   },
 }));

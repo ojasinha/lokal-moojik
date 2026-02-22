@@ -103,7 +103,7 @@ export function SongsTab({ externalQuery }: Props) {
     if (sortKey === 'ascending') return a.name.localeCompare(b.name);
     if (sortKey === 'descending') return b.name.localeCompare(a.name);
     if (sortKey === 'artist') return (a.artist || '').localeCompare(b.artist || '');
-    if (sortKey === 'album') return (a.album || '').localeCompare(b.album || '');
+    if (sortKey === 'album') return (a.album?.name || '').localeCompare(b.album?.name || '');
     if (sortKey === 'year') return (a.year || 0) - (b.year || 0);
     if (sortKey === 'dateAdded') return (a.dateAdded || 0) - (b.dateAdded || 0);
     if (sortKey === 'dateModified') return (a.dateModified || 0) - (b.dateModified || 0);

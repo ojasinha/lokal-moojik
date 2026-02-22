@@ -2,7 +2,7 @@ import { useAppColors } from '@/hooks/use-app-colors';
 import { Image } from 'expo-image';
 import { MoreVertical } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { SearchArtist } from '../types/music';
 import { decodeHtmlEntities } from '../utils/html';
 
@@ -27,7 +27,11 @@ export function ArtistItem({ artist, onPress, onMorePress }: Props) {
   const img = getImage(artist);
 
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.7}>
+    <Pressable
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      onPress={onPress}
+      android_ripple={{ color: 'rgba(255,255,255,0.08)', borderless: false }}
+    >
       <Image
         source={img ? { uri: img } : PLACEHOLDER}
         style={styles.avatar}
@@ -42,11 +46,14 @@ export function ArtistItem({ artist, onPress, onMorePress }: Props) {
         </Text>
       </View>
       {onMorePress && (
-        <TouchableOpacity onPress={onMorePress} hitSlop={{ top: 8, bottom: 8, left: 8, right: 0 }}>
+        <TouchableOpacity
+          onPress={onMorePress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 0 }}
+        >
           <MoreVertical size={20} color={colors.icon} />
         </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -57,6 +64,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 12,
+  },
+  rowPressed: {
+    opacity: 0.7,
   },
   avatar: {
     width: 52,

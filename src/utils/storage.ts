@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Track } from "../types/music";
+import type { Playlist, Track } from "../types/music";
 
 const KEYS = {
   queue: "@lm/queue",
@@ -7,6 +7,7 @@ const KEYS = {
   recent: "@lm/recent",
   downloaded: "@lm/downloaded",
   searchHistory: "@lm/searchHistory",
+  playlists: "@lm/playlists",
   download: (id: string) => `@lm/dl/${id}`,
 } as const;
 
@@ -57,3 +58,6 @@ export async function setDownloadedUri(
 export const loadSearchHistory = () => load<string[]>(KEYS.searchHistory, []);
 export const saveSearchHistory = (h: string[]) =>
   save(KEYS.searchHistory, h.slice(0, 20));
+
+export const loadPlaylists = () => load<Playlist[]>(KEYS.playlists, []);
+export const savePlaylists = (p: Playlist[]) => save(KEYS.playlists, p);

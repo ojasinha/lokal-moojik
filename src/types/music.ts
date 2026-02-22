@@ -100,3 +100,12 @@ export interface AlbumDetail {
   image?: { quality: string; url?: string; link?: string }[];
   songs?: RawSong[];
 }
+
+// ─── Playlist ─────────────────────────────────────────────────────────────────
+
+export interface Playlist {
+  id: string;
+  name: string;
+  tracks: Track[];
+  createdAt: number;
+}

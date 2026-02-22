@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Search: undefined;
   ArtistDetail: { artistId: string; artistName: string };
   AlbumDetail: { albumId: string; albumName: string };
+  PlaylistDetail: { playlistId: string; playlistName: string };
 };
 
 export type TabParamList = {

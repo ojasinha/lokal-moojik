@@ -50,10 +50,12 @@ export default function App() {
         },
       };
 
+  const bgColor = colorScheme === 'dark' ? '#141414' : '#FFFFFF';
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <NavigationContainer theme={navTheme}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: bgColor }}>
+      <SafeAreaProvider style={{ backgroundColor: bgColor }}>
+        <NavigationContainer theme={navTheme} style={{ backgroundColor: bgColor }}>
           <AudioProvider>
             <AppInner />
           </AudioProvider>

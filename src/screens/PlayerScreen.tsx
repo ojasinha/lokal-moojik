@@ -4,18 +4,21 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Image } from 'expo-image';
-import { ChevronDown, CircleCheckBig, Download, Heart, ListMusic } from 'lucide-react-native';
+import { ChevronDown, CircleCheckBig, Download, Heart, ListMusic, ListPlus, Menu, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Modal,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AddToPlaylistModal } from '../components/AddToPlaylistModal';
 import { PlayerControls } from '../components/PlayerControls';
 import { SeekBar } from '../components/SeekBar';
 import type { RootStackParamList } from '../navigation/types';
@@ -40,6 +43,8 @@ export default function PlayerScreen() {
   const addDownloadedTrack = usePlayerStore((s) => s.addDownloadedTrack);
 
   const [downloading, setDownloading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
 
   // Compute whether current track is favorited
   const loved = currentTrack ? favourites.some((f) => f.id === currentTrack.id) : false;
@@ -92,10 +97,10 @@ export default function PlayerScreen() {
         </View>
 
         <TouchableOpacity
-          onPress={() => nav.navigate('Queue')}
+          onPress={() => setShowMenu(true)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <ListMusic size={26} color={colors.textPrimary} />
+          <Menu size={26} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -150,6 +155,68 @@ export default function PlayerScreen() {
           <PlayerControls />
         </View>
       </View>
+
+      {/* Burger menu bottom sheet */}
+      <Modal
+        visible={showMenu}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowMenu(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowMenu(false)}>
+          <View style={styles.menuBackdrop}>
+            <TouchableWithoutFeedback>
+              <View style={[styles.menuSheet, { backgroundColor: colors.surface }]}>
+                {/* Track preview */}
+                {currentTrack && (
+                  <View style={styles.menuPreview}>
+                    <Image
+                      source={currentTrack.artwork ? { uri: currentTrack.artwork } : PLACEHOLDER}
+                      style={styles.menuArt}
+                      contentFit="cover"
+                    />
+                    <View style={styles.menuPreviewInfo}>
+                      <Text style={[styles.menuTrackName, { color: colors.textPrimary }]} numberOfLines={1}>
+                        {decodeHtmlEntities(currentTrack.name)}
+                      </Text>
+                      <Text style={[styles.menuTrackArtist, { color: colors.textSecondary }]} numberOfLines={1}>
+                        {decodeHtmlEntities(currentTrack.primaryArtists)}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setShowMenu(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <X size={20} color={colors.textSecondary} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <View style={[styles.menuDivider, { backgroundColor: colors.border }]} />
+
+                <TouchableOpacity
+                  style={styles.menuRow}
+                  onPress={() => { setShowMenu(false); nav.navigate('Queue'); }}
+                >
+                  <ListMusic size={22} color={colors.icon} />
+                  <Text style={[styles.menuRowLabel, { color: colors.textPrimary }]}>View Queue</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuRow}
+                  onPress={() => { setShowMenu(false); setShowAddToPlaylist(true); }}
+                >
+                  <ListPlus size={22} color={colors.icon} />
+                  <Text style={[styles.menuRowLabel, { color: colors.textPrimary }]}>Add to Playlist</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <AddToPlaylistModal
+        visible={showAddToPlaylist}
+        track={currentTrack}
+        onClose={() => setShowAddToPlaylist(false)}
+      />
     </View>
   );
 }
@@ -208,4 +275,40 @@ const styles = StyleSheet.create({
   infoActions: { flexDirection: 'row', alignItems: 'center', gap: 16, marginLeft: 12 },
   seekContainer: { paddingHorizontal: 0, marginBottom: 16 },
   controlsContainer: { paddingBottom: 16 },
+  // Burger menu
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  menuSheet: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+  menuPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+  },
+  menuArt: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    backgroundColor: '#333',
+  },
+  menuPreviewInfo: { flex: 1 },
+  menuTrackName: { fontSize: 15, fontWeight: '600' },
+  menuTrackArtist: { fontSize: 13, marginTop: 2 },
+  menuDivider: { height: StyleSheet.hairlineWidth },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 16,
+  },
+  menuRowLabel: { fontSize: 16 },
 });
